@@ -49,12 +49,12 @@ class BaseDatabaseTestCase(NoseTestCase):
       List or tuple with fixtures names to load. See
       ``./manage.py loaddata --help`` in your project to more details.
 
-    remove_installedapps
+    disabled_apps
       In case you wish to temporary remove some app from settings.INSTALLED_APPS
       and run test as there are no such app in INSTALLED_APPS - put app name here
     """
 
-    remove_from_installedapps = []
+    disabled_apps = []
 
     database_name = None
     database_flush = None
@@ -67,12 +67,17 @@ class BaseDatabaseTestCase(NoseTestCase):
         """
         #remove app from INSTALLED_APPS
         self.old_installed_apps = settings.INSTALLED_APPS
-
-        if not self.remove_from_installedapps == []:
+        
+        try:
+            disabled_apps = self.disabled_apps + settings.TEST_DISABLED_APPS
+        except:
+            disabled_apps = self.disabled_apps
+            
+        if not disabled_apps == []:
             settings.INSTALLED_APPS = []
             for app in self.old_installed_apps:
-                if not app in self.remove_from_installedapps:
-                    settings.INSTALLED_APPS.append(app)
+                if not app in disabled_apps:
+                        settings.INSTALLED_APPS.append(app)
 
         # Creates test database
         create_test_db = True
