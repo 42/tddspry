@@ -497,3 +497,8 @@ class HttpTestCase(BaseHttpTestCase):
         """
         should_be = self.build_url(url, args, kwargs, True)
         return self._url(should_be)
+    
+    def fix_xhtml(self):
+        b = self.get_browser()
+        b._browser._factory.is_html = True
+        self.browser = b
