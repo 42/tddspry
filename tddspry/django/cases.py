@@ -17,6 +17,10 @@ from twill import add_wsgi_intercept, commands
 from twill.errors import TwillAssertionError
 from twill.extensions.check_links import check_links
 
+from windmill.authoring import WindmillTestClient, djangotest
+from windmill.authoring import setup_module, teardown_module 
+from windmill.server import proxy
+
 
 __all__ = ('DatabaseTestCase', 'HttpTestCase')
 
@@ -502,3 +506,27 @@ class HttpTestCase(BaseHttpTestCase):
         b = self.get_browser()
         b._browser._factory.is_html = True
         self.browser = b
+
+class WindmillTestCaseMetaclass(NoseTestCaseMetaclass):
+
+    def __new__(cls, name, bases, attrs):
+        for attr_name, attr_value in attrs.items():
+            if 'test' in attr_name and callable(attr_value):
+                attrs[attr_name].windmill = True
+
+        super_new = super(WindmillTestCaseMetaclass, cls).__new__
+        return super_new(cls, name, bases, attrs)
+
+
+class WindmillTestCase(djangotest.WindmillDjangoUnitTest, BaseHttpTestCase):
+
+    __metaclass__ = WindmillTestCaseMetaclass
+
+    def _get_client(self):
+        return WindmillTestClient(__name__)
+    
+    client = property(_get_client)
+
+    def testWindmill(self):
+        """Override WindmillDjangoUnitTest method"""
+        pass
